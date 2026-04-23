@@ -1,21 +1,16 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.env
-
-# PyInstaller
+# PyInstaller and Build outputs
 build/
 dist/
 *.spec
 
-# Large files
-*.zip
-*.exe
-*.onnx
-*.json.gz
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
 
-# OS
+# OS junk
 .DS_Store
 Thumbs.db

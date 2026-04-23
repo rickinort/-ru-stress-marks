@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import threading
+import webbrowser
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -23,7 +24,7 @@ def load_model():
         # Справочник ручных исправлений
         custom_dict = {
             "узнаете": "узн+аете",
-            "узанаёте": "узн+аете",  
+            "узнаёте": "узн+аете",
             "лет": "лет",            
             "после": "после",
             "это": "это",           # Убираем ударение
@@ -33,6 +34,7 @@ def load_model():
         # Справочник для слов с двойным смыслом (омографов)
         custom_homographs = {
             "боли": ["б+оли"], # По умолчанию ставим на первый слог, если контекст подвел
+            "узнаете": ["узн+аете"]
         }
 
         print("Loading RUAccent models...")
@@ -88,6 +90,37 @@ async def add_stress(request: TextRequest):
     try:
         processed = accentizer.process_all(request.text)
         visual_text = convert_plus_to_unicode(processed)
+        
+        # Раз и навсегда: бронебойный метод через регулярку, которая видит ударения
+        def final_clean(text):
+            to_remove = ["после", "это", "изо", "лет"]
+            
+            # Функция для обработки найденного слова
+            def word_fix(match):
+                word = match.group(0)
+                # Чистая версия для проверки (без ударения и к 'е')
+                test = word.replace(ACUTE_ACCENT, "").replace("ё", "е").lower()
+                
+                # 1. Если это исключение на удаление ударений
+                if test in to_remove:
+                    res = word.replace(ACUTE_ACCENT, "")
+                    if test == "лет": res = res.replace("ё", "е")
+                    return res
+                
+                # 2. Если это "узнаете"
+                if test == "узнаете":
+                    res = "узна" + ACUTE_ACCENT + "ете"
+                    if word[0].isupper(): res = res.capitalize()
+                    return res
+                
+                return word
+
+            # Ищем последовательности русских букв ВКЛЮЧАЯ буквы со значком ударения
+            # [а-яА-ЯёЁ\u0301]+ -- это обеспечит, что слово не развалится
+            pattern = re.compile(r'[а-яА-ЯёЁ' + ACUTE_ACCENT + r']+')
+            return re.sub(pattern, word_fix, text)
+
+        visual_text = final_clean(visual_text)
         return TextResponse(original=request.text, processed=visual_text)
     except Exception as e:
         import traceback
@@ -113,4 +146,21 @@ app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    import threading
+    import time
+
+    def open_browser():
+        time.sleep(3)  # Увеличим до 3 секунд для надежности
+        webbrowser.open("http://127.0.0.1:8000")
+
+    threading.Thread(target=open_browser, daemon=True).start()
+
+    # Полностью отключаем логи, чтобы не было ошибки isatty
+    config = uvicorn.Config(
+        app, 
+        host="127.0.0.1", 
+        port=8000, 
+        log_config=None  # Глушим логирование на корню
+    )
+    server = uvicorn.Server(config)
+    server.run()
