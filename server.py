@@ -20,9 +20,35 @@ def load_model():
     _model_loading = True
     try:
         from ruaccent import RUAccent
+        # Справочник ручных исправлений
+        custom_dict = {
+            "узнаете": "узн+аете",
+            "узанаёте": "узн+аете",  
+            "лет": "лет",            
+            "после": "после",
+            "это": "это",           # Убираем ударение
+            "изо": "изо",           # Убираем ударение
+        }
+        
+        # Справочник для слов с двойным смыслом (омографов)
+        custom_homographs = {
+            "боли": ["б+оли"], # По умолчанию ставим на первый слог, если контекст подвел
+        }
+
         print("Loading RUAccent models...")
+        # Указываем turbo, так как tiny2.1 глючит на входах ONNX
         a = RUAccent()
-        a.load(omograph_model_size='turbo', use_dictionary=False)
+        a.load(
+            omograph_model_size="turbo", 
+            use_dictionary=False, 
+            custom_dict=custom_dict,
+            custom_homographs=custom_homographs
+        )
+        # Гарантируем, что "лет" не станет "лёт"
+        if hasattr(a, 'yo_words'):
+            a.yo_words.pop("лет", None)
+            a.yo_words["лет"] = "лет"
+            
         accentizer = a
         print("Models loaded successfully.")
     except Exception as e:
