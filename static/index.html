@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ударения Онлайн | Расставить ударения в тексте</title>
+    <meta name="description" content="Бесплатный сервис для автоматической расстановки ударений в русском тексте с учетом контекста и смысла.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Бесплатная расстановка ударений онлайн</h1>
+            <p class="subtitle">Без ограничений по символам и подписок (работает на вашем ПК)</p>
+        </header>
+
+        <main class="glass-card">
+            <div class="input-section">
+                <textarea id="input-text" placeholder="Введите или вставьте текст на русском языке..."></textarea>
+                <div class="controls">
+                    <button id="clear-btn" class="btn-secondary">Очистить</button>
+                    <button id="process-btn" class="btn-primary">
+                        <span class="loader" id="loader"></span>
+                        <span id="btn-text">Расставить ударения</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <section id="output-section" class="glass-card">
+            <div class="output-header">
+                <span class="badge">Результат</span>
+                <div class="controls">
+                    <button id="copy-btn" class="btn-secondary">Копировать</button>
+                </div>
+            </div>
+            <div id="output-text" class="output-container"></div>
+        </section>
+
+        <footer>
+            Built with RUAccent Neural Models &bull; No character limit &bull; 2026
+        </footer>
+    </div>
+
+    <div id="toast" class="toast">Текст скопирован!</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
