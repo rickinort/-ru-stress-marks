@@ -14,3 +14,6 @@ ENV/
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Large models
+ruaccent_bundle.zip
