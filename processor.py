@@ -2,6 +2,11 @@ import re
 import threading
 from typing import Optional, Dict, List
 import config
+import logging
+import sys
+import os
+
+logger = logging.getLogger(__name__)
 
 class StressProcessor:
     def __init__(self):
@@ -34,9 +39,9 @@ class StressProcessor:
                 # Подменяем метод run в обоих классах моделей
                 ruaccent.accent_model.AccentModel.run = patched_run
                 ruaccent.omograph_model.OmographModel.run = patched_run
-                print("RuAccent patched in memory successfully.")
+                logger.info("RuAccent patched in memory successfully.")
             except Exception as e:
-                print(f"Warning: Could not apply memory patch: {e}")
+                logger.warning(f"Could not apply memory patch: {e}")
             # --- MONKEY PATCHING END ---
 
             a = RUAccent()
@@ -53,11 +58,10 @@ class StressProcessor:
                 a.yo_words["лет"] = "лет"
                 
             self.accentizer = a
-            print("Models loaded successfully.")
+            logger.info("Models loaded successfully.")
         except Exception as e:
-            import traceback
             self._error = str(e)
-            traceback.print_exc()
+            logger.error("Failed to load models", exc_info=True)
         finally:
             self._loading = False
             self._ready.set()

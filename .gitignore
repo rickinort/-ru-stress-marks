@@ -17,3 +17,5 @@ Thumbs.db
 
 # Large models
 ruaccent_bundle.zip
+# Logs
+service_error.log

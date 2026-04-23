@@ -4,6 +4,25 @@ import webbrowser
 import uvicorn
 from server import app, processor
 import config
+import logging
+import sys
+import os
+
+# Настройка логирования в файл для портативной версии
+log_path = os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else ".", "service_error.log")
+
+# Заглушка для stdout/stderr в режиме без консоли
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
+
+logging.basicConfig(
+    filename=log_path,
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 def open_browser():
     """Открывает браузер через паузу после старта сервера."""
@@ -13,7 +32,7 @@ def open_browser():
     webbrowser.open(url)
 
 if __name__ == "__main__":
-    print("Starting Russian Stress Marks Service (Portable)...")
+    logger.info("Starting Russian Stress Marks Service (Portable)...")
     
     # Запускаем загрузку моделей в фоне
     processor.start_loading()
@@ -21,16 +40,14 @@ if __name__ == "__main__":
     # Запускаем браузер
     threading.Thread(target=open_browser, daemon=True).start()
     
-    # Конфиг сервера
-    uvicorn_config = uvicorn.Config(
-        app, 
-        host=config.HOST, 
-        port=config.PORT, 
-        log_level="info"
-    )
-    server = uvicorn.Server(uvicorn_config)
-    
     try:
-        server.run()
+        uvicorn.run(
+            app, 
+            host=config.HOST, 
+            port=config.PORT, 
+            log_level="info"
+        )
+    except Exception as e:
+        logger.error(f"Fatal error: {e}", exc_info=True)
     except KeyboardInterrupt:
-        print("\nService stopped by user.")
+        logger.info("Service stopped by user.")
